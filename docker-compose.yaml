@@ -1,0 +1,118 @@
+version: '3.8'
+name: classroom
+
+services:
+
+  db-classroom:
+    container_name: classroom-db-classroom
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=classroom
+      - POSTGRES_PASSWORD=classroom
+      - POSTGRES_DB=classroom
+    volumes:
+      - $VOLUME/postgres/classroom/data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - private-network
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: classroom-prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - $VOLUME/prometheus:/etc/prometheus
+      - $VOLUME/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - private-network
+
+  grafana:
+    container_name: classroom-grafana
+    image: grafana/grafana-enterprise
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - $VOLUME/grafana:/var/lib/grafana
+      - $VOLUME/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources      
+    restart: always
+    networks:
+      - private-network
+
+  discovery:
+    build:
+      context: ../platform.classroom.discovery/
+      dockerfile: Dockerfile
+    container_name: classroom-discovery
+    image: classroom-discovery:latest
+    ports:
+      - 8761:8761
+    restart: always
+    networks:
+      - private-network
+  
+  
+  gateway:
+    build:
+      context: ../platform.classroom.gateway/
+      dockerfile: Dockerfile
+    image: classroom-gateway:latest
+    ports:
+      - 8080:8080
+    environment:
+      - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - private-network
+    depends_on:
+      - discovery
+
+  account:
+    build:
+      context: ../platform.classroom.account-resource/
+      dockerfile: Dockerfile
+    image: classroom-account:latest
+    environment:
+      - spring.datasource.url=jdbc:postgresql://classroom-db-classroom:5432/classroom
+      - spring.datasource.username=classroom
+      - spring.datasource.password=classroom
+      - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    restart: always
+    networks:
+      - private-network
+    depends_on:
+      - db-classroom
+      - discovery
+
+  auth:
+    build:
+      context: ../platform.classroom.auth-resource/
+      dockerfile: Dockerfile
+    image: classroom-auth:latest
+    ports:
+      - 8080:8080
+    environment:
+      - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - private-network
+    depends_on:
+      - discovery
+      - account
+
+
+networks:
+  private-network:
+    driver: bridge
