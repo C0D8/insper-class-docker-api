@@ -46,10 +46,10 @@ services:
 
   discovery:
     build:
-      context: ../platform.classroom.discovery/
+      context: ../insper-class-discovery/
       dockerfile: Dockerfile
     container_name: classroom-discovery
-    image: classroom-discovery:latest
+    image: classroom.discovery:latest
     ports:
       - 8761:8761
     restart: always
@@ -59,9 +59,9 @@ services:
   
   gateway:
     build:
-      context: ../platform.classroom.gateway/
+      context: ../insper-class-gateway/
       dockerfile: Dockerfile
-    image: classroom-gateway:latest
+    image: classroom.gateway:latest
     ports:
       - 8080:8080
     environment:
@@ -76,9 +76,9 @@ services:
 
   account:
     build:
-      context: ../platform.classroom.account-resource/
+      context: ../insper-class-account-resource/
       dockerfile: Dockerfile
-    image: classroom-account:latest
+    image: classroom.account:latest
     environment:
       - spring.datasource.url=jdbc:postgresql://classroom-db-classroom:5432/classroom
       - spring.datasource.username=classroom
@@ -96,11 +96,9 @@ services:
 
   auth:
     build:
-      context: ../platform.classroom.auth-resource/
+      context: ../insper-class-auth-resource/
       dockerfile: Dockerfile
-    image: classroom-auth:latest
-    ports:
-      - 8080:8080
+    image: classroom.auth:latest
     environment:
       - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
     deploy:
