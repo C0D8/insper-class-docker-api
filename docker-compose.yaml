@@ -18,7 +18,6 @@ services:
     networks:
       - private-network
 
-
   prometheus:
     image: prom/prometheus:latest
     container_name: classroom-prometheus
@@ -49,26 +48,23 @@ services:
       context: ../insper-class-discovery/
       dockerfile: Dockerfile
     container_name: classroom-discovery
-    image: classroom.discovery:latest
+    image: classroom-discovery:latest
     ports:
       - 8761:8761
     restart: always
     networks:
       - private-network
-  
-  
+
   gateway:
     build:
       context: ../insper-class-gateway/
       dockerfile: Dockerfile
-    image: classroom.gateway:latest
+    container_name: classroom-gateway
+    image: classroom-gateway:latest
     ports:
       - 8080:8080
     environment:
       - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
-    deploy:
-      mode: replicated
-      replicas: 1
     networks:
       - private-network
     depends_on:
@@ -78,7 +74,7 @@ services:
     build:
       context: ../insper-class-account-resource/
       dockerfile: Dockerfile
-    image: classroom.account:latest
+    image: classroom-account:latest
     environment:
       - spring.datasource.url=jdbc:postgresql://classroom-db-classroom:5432/classroom
       - spring.datasource.username=classroom
@@ -117,7 +113,7 @@ services:
     build:
       context: ../insper-class-auth-resource/
       dockerfile: Dockerfile
-    image: classroom.auth:latest
+    image: classroom-auth:latest
     environment:
       - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
     deploy:
@@ -128,7 +124,6 @@ services:
     depends_on:
       - discovery
       - account
-
 
 networks:
   private-network:
