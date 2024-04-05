@@ -90,6 +90,22 @@ services:
       - db-store
       - discovery
 
+  aula:
+    build:
+      context: ../insper-class-class-resource/
+      dockerfile: Dockerfile
+    image: classroom.aula:latest
+    environment:
+      - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - private-network
+    depends_on:
+      - discovery
+      - account
+
   auth:
     build:
       context: ../platform.241.store.auth-resource/
