@@ -100,6 +100,9 @@ services:
       dockerfile: Dockerfile
     image: classroom.aula:latest
     environment:
+      - spring.datasource.url=jdbc:postgresql://classroom-db-classroom:5432/classroom
+      - spring.datasource.username=classroom
+      - spring.datasource.password=classroom
       - eureka.client.service-url.defaultZone=http://classroom-discovery:8761/eureka/
     deploy:
       mode: replicated
