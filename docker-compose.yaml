@@ -18,6 +18,20 @@ services:
     networks:
       - private-network
 
+  redis:
+    container_name: classroom-redis
+    image: redis:latest
+    ports:
+      - 6379:6379
+    environment:
+      - REDIS_HOST=classroom-redis
+      - REDIS_PORT=6379
+    volumes:
+      - $VOLUME/redis:/data
+    restart: always
+    networks:
+      - private-network
+
   prometheus:
     image: prom/prometheus:latest
     container_name: classroom-prometheus
@@ -110,6 +124,7 @@ services:
     depends_on:
       - discovery
       - account
+      - redis
       
   monitoria:
     build:
@@ -129,6 +144,7 @@ services:
     depends_on:
       - discovery
       - account
+      - redis
       
   departamento:
     build:
@@ -148,6 +164,7 @@ services:
     depends_on:
       - discovery
       - account
+      - redis
 
   auth:
     build:
